@@ -1,4 +1,4 @@
-declare interface Note {
+export declare interface Note {
   noteId: string;
   content: string;
   updated: Date;
@@ -6,7 +6,7 @@ declare interface Note {
   complete: boolean;
 }
 
-declare interface Tag {
+export declare interface Tag {
   tagId: string;
   tagName: string;
 }
