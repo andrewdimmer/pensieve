@@ -1,6 +1,13 @@
 import { notesRef } from "../config/firestoreConfig";
 import { logReturnFalse } from "../helpers/errorHelpers";
 
+/**
+ * Adds a tag to the given note.
+ *
+ * @param noteId The noteId of the note to add the tag to.
+ * @param tagId The tagId of the tag to add.
+ * @return A Promise containing false if there was an error; true otherwise.
+ */
 export const addTag = (noteId: string, tagId: string) => {
   return notesRef
     .doc(noteId)
@@ -28,6 +35,13 @@ export const addTag = (noteId: string, tagId: string) => {
     .catch(logReturnFalse);
 };
 
+/**
+ * Removes a tag from the given note.
+ *
+ * @param noteId The noteId of the note to remove the tag from.
+ * @param tagId The tagId of the tag to remove.
+ * @return A Promise containing false if there was an error; true otherwise.
+ */
 export const removeTag = (noteId: string, tagId: string) => {
   return notesRef
     .doc(noteId)
