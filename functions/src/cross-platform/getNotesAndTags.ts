@@ -1,5 +1,6 @@
 import { notesRef, tagsRef } from "../config/firestoreConfig";
 import { logReturnEmptyArray } from "../helpers/errorHelpers";
+import { Note, Tag } from "../@types";
 
 /**
  * Gets the notes with the given tags; if no tags are given, it returns all notes.
@@ -7,14 +8,14 @@ import { logReturnEmptyArray } from "../helpers/errorHelpers";
  * @param tags An array of the tagIds that the note must have
  * @returns An array of the notes with the given tags
  */
-export const getNotes = (tags: string[]) => {
+export const getNotes = (tags: string[]): Promise<Note[]> => {
   return notesRef
     .where("tags", "array-contains-any", tags)
     .orderBy("updated", "desc")
     .get()
     .then((queryResults) => {
       return queryResults.docs.map((snapshot) => {
-        return snapshot.data();
+        return snapshot.data() as Note;
       });
     })
     .catch(logReturnEmptyArray);
@@ -25,13 +26,13 @@ export const getNotes = (tags: string[]) => {
  *
  * @returns An array of all of the tags in the database.
  */
-export const getTags = () => {
+export const getTags = (): Promise<Tag[]> => {
   return tagsRef
     .orderBy("tagName", "desc")
     .get()
     .then((queryResults) => {
       return queryResults.docs.map((snapshot) => {
-        return snapshot.data();
+        return snapshot.data() as Tag;
       });
     })
     .catch(logReturnEmptyArray);
