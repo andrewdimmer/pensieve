@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 
 class BottomNavBarButton extends StatelessWidget {
-  BottomNavBarButton({Key key, this.label, this.callback}) : super(key: key);
+  BottomNavBarButton({Key key, this.props}) : super(key: key);
 
-  final String label;
-  final Function callback;
+  final BottomNavBarButtonProps props;
 
   Widget build(BuildContext context) {
     return Padding(
       child: RaisedButton(
-        child: Text(label),
+        child: Text(props.label),
         clipBehavior: Clip.antiAlias,
         autofocus: false,
-        onPressed: callback,
+        onPressed: props.callback,
         color: Colors.teal,
         textColor: Colors.white,
         shape: RoundedRectangleBorder(
@@ -23,4 +22,11 @@ class BottomNavBarButton extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 16),
     );
   }
+}
+
+class BottomNavBarButtonProps {
+  BottomNavBarButtonProps({this.label, this.callback});
+
+  final String label;
+  final Function callback;
 }
