@@ -32,6 +32,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final _pageController = PageController(initialPage: 1);
+
   List<Map<String, String>> _list = [
     {"noteId": "Test1", "content": "This is the first note."},
     {"noteId": "Test2", "content": "This is the second note."},
@@ -45,16 +47,18 @@ class _MyHomePageState extends State<MyHomePage> {
     {"noteId": "Test10", "content": "This is the tenth note."},
   ];
 
-  final _pageController = PageController(initialPage: 1);
+  Widget _fab = _getAddNewFab("New Thought", () {});
 
-  void _handleReorder(int index1, int index2) {
-    setState(() {
-      _list.insert(index2, _list[index1]);
-      if (index2 < index1) {
-        index1++;
-      }
-      _list.removeAt(index1);
-    });
+  Function _handleReorderFactory(List list) {
+    return (int index1, int index2) {
+      setState(() {
+        list.insert(index2, _list[index1]);
+        if (index2 < index1) {
+          index1++;
+        }
+        list.removeAt(index1);
+      });
+    };
   }
 
   Function _navigationFunctionFactory(int goToPage) {
@@ -62,6 +66,28 @@ class _MyHomePageState extends State<MyHomePage> {
       _pageController.animateToPage(goToPage,
           duration: Duration(milliseconds: 500), curve: Curves.ease);
     };
+  }
+
+  static Widget _getAddNewFab(String label, Function onPressed) {
+    return FloatingActionButton.extended(
+      onPressed: onPressed,
+      label: Text(label),
+      icon: Icon(Icons.add),
+      backgroundColor: Colors.teal,
+      foregroundColor: Colors.white,
+    );
+  }
+
+  void _setFab(int page) {
+    Widget tempFab;
+    if (page == 0) {
+      tempFab = _getAddNewFab("New Tag", () {});
+    } else if (page == 1) {
+      tempFab = _getAddNewFab("New Thought", () {});
+    }
+    setState(() {
+      _fab = tempFab;
+    });
   }
 
   @override
@@ -75,35 +101,23 @@ class _MyHomePageState extends State<MyHomePage> {
           NoteList(
             header: Text("Tags"),
             list: _list,
-            handleReorder: _handleReorder,
+            handleReorder: _handleReorderFactory(_list),
           ),
           NoteList(
             header: Text("Current Thoughts"),
             list: _list,
-            handleReorder: _handleReorder,
+            handleReorder: _handleReorderFactory(_list),
           ),
           NoteList(
             header: Text("Past Thoughts"),
             list: _list,
-            handleReorder: _handleReorder,
+            handleReorder: _handleReorderFactory(_list),
           )
         ],
         controller: _pageController,
+        onPageChanged: _setFab,
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          /*Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (BuildContext context) => NewGoal(
-                        addGoal: addGoal,
-                      ))); */
-        },
-        label: Text('New Thought'),
-        icon: Icon(Icons.add),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
-      ),
+      floatingActionButton: _fab,
       bottomNavigationBar: BottomNavBar(
         propsList: [
           BottomNavBarButtonProps(

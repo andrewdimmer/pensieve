@@ -22,6 +22,7 @@ class NoteList extends StatelessWidget {
           )
           .toList(),
       onReorder: handleReorder,
+      padding: EdgeInsets.only(top: 16),
     );
   }
 }
