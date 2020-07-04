@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pensieve/Widgets/bottomNavBar.dart';
 
 import 'Widgets/note.dart';
 
@@ -53,26 +54,39 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Expanded(
-              child: ReorderableListView(
-                  children: _list
-                      .map(
-                        (item) => Note(
-                          noteId: item["noteId"],
-                          content: item["content"],
-                          key: UniqueKey(),
-                        ),
-                      )
-                      .toList(),
-                  onReorder: handleReorder),
+      body: ReorderableListView(
+        children: _list
+            .map(
+              (item) => Note(
+                noteId: item["noteId"],
+                content: item["content"],
+                key: UniqueKey(),
+              ),
             )
-          ],
-        ),
+            .toList(),
+        onReorder: handleReorder,
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          /*Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (BuildContext context) => NewGoal(
+                        addGoal: addGoal,
+                      ))); */
+        },
+        label: Text('New Thought'),
+        icon: Icon(Icons.add),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+      ),
+      bottomNavigationBar: BottomNavBar(
+        leftLabel: "Tags",
+        rightLabel: "Past Thoughts",
+        leftCallback: () => {},
+        rightCallback: () => {},
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
