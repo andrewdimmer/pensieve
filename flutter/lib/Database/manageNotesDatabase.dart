@@ -8,7 +8,12 @@ Future<List<NoteObject>> getNotesFromDatabase(
   final response = await http.post(
       'https://us-central1-hackcation2020-gcp.cloudfunctions.net/get_notes_flutter',
       body: '{"tags": ' +
-          tags.toString() +
+          tags
+              .map((tag) {
+                return "\"" + tag + "\"";
+              })
+              .toList()
+              .toString() +
           ', "complete": ' +
           complete.toString() +
           '}');
