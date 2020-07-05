@@ -10,7 +10,7 @@ import { logReturnEmptyString, logReturnFalse } from "../helpers/errorHelpers";
  */
 export const createNote = (content: string) => {
   const noteId = nanoid();
-  notesRef
+  return notesRef
     .doc(noteId)
     .set({ noteId, content, tags: [], order: Date.now(), complete: false })
     .then(() => noteId)
@@ -25,7 +25,7 @@ export const createNote = (content: string) => {
  * @returns A promise containing true if the update was successful; false otherwise.
  */
 export const editNote = (noteId: string, content: string) => {
-  notesRef
+  return notesRef
     .doc(noteId)
     .update({ content, order: Date.now() })
     .then(() => true)
@@ -39,7 +39,7 @@ export const editNote = (noteId: string, content: string) => {
  * @returns A promise containing true if the was deleted successful; false otherwise.
  */
 export const deleteNote = (noteId: string) => {
-  notesRef
+  return notesRef
     .doc(noteId)
     .delete()
     .then(() => true)

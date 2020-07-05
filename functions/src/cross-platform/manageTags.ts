@@ -10,7 +10,7 @@ import { logReturnEmptyString, logReturnFalse } from "../helpers/errorHelpers";
  */
 export const createTag = (tagName: string) => {
   const tagId = nanoid();
-  tagsRef
+  return tagsRef
     .doc(tagId)
     .set({ tagId, tagName })
     .then(() => tagId)
@@ -25,7 +25,7 @@ export const createTag = (tagName: string) => {
  * @returns A promise containing true if the update was successful; false otherwise.
  */
 export const editTag = (tagId: string, tagName: string) => {
-  tagsRef
+  return tagsRef
     .doc(tagId)
     .update({ tagName })
     .then(() => true)
@@ -39,7 +39,7 @@ export const editTag = (tagId: string, tagName: string) => {
  * @returns A promise containing true if the was deleted successful; false otherwise.
  */
 export const deleteTag = (tagId: string) => {
-  tagsRef
+  return tagsRef
     .doc(tagId)
     .delete()
     .then(() => true)
