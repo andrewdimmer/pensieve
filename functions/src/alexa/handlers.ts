@@ -140,7 +140,7 @@ const getAlexaResponse = async (
       "<speak>" + "Getting your last " + number + " notes.";
     AlexaDefaultAnswer.response.card.content =
       "Getting your last " + number + " notes. \n";
-    return getNotes(false, [], parseInt(number.replace(/"/g, "")))
+    return getNotes(false, [], parseInt(number.toString().replace(/"/g, "")))
       .then((notes) => {
         for (let i = 0; i < notes.length; i++) {
           AlexaDefaultAnswer.response.outputSpeech.ssml +=
