@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:pensieve/Classes/dataObjects.dart';
-import 'package:pensieve/Database/getNotes.dart';
 import 'package:pensieve/Widgets/note.dart';
 
 class NoteList extends StatelessWidget {
   NoteList(
-      {Key key, this.header, this.list, this.handleReorder, this.refreshList})
+      {Key key,
+      this.header,
+      this.list,
+      this.handleReorder,
+      this.refreshList,
+      this.onToggleComplete,
+      this.onDelete})
       : super(key: key);
 
   final Widget header;
   final List<NoteObject> list;
   final Function handleReorder;
   final Function refreshList;
+  final Function onToggleComplete;
+  final Function onDelete;
 
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -20,8 +27,9 @@ class NoteList extends StatelessWidget {
         children: list
             .map(
               (item) => Note(
-                noteId: item.noteId,
-                content: item.content,
+                note: item,
+                onToggleComplete: onToggleComplete,
+                onDelete: onDelete,
                 key: UniqueKey(),
               ),
             )
@@ -29,9 +37,7 @@ class NoteList extends StatelessWidget {
         onReorder: handleReorder,
         padding: EdgeInsets.only(top: 16),
       ),
-      onRefresh: () async {
-        getNotesFromDatabase(false, []);
-      },
+      onRefresh: refreshList,
     );
   }
 }

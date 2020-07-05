@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:pensieve/Classes/dataObjects.dart';
 
 class Note extends StatelessWidget {
-  Note({Key key, this.noteId, this.content}) : super(key: key);
+  Note({Key key, this.note, this.onToggleComplete, this.onDelete})
+      : super(key: key);
 
-  final String noteId;
-  final String content;
+  final NoteObject note;
+  final Function onToggleComplete;
+  final Function onDelete;
 
   Widget build(BuildContext context) {
     return (Dismissible(
@@ -19,7 +22,7 @@ class Note extends StatelessWidget {
                     ),
                     padding: EdgeInsets.symmetric(horizontal: 32)),
                 Expanded(
-                  child: Text(content),
+                  child: Text(note.content),
                 ),
                 Padding(
                     child: IconButton(
@@ -39,65 +42,66 @@ class Note extends StatelessWidget {
           margin: EdgeInsets.all(16),
         ),
         key: UniqueKey(),
-        background: Container(
-          child: Row(
-            children: [
-              Padding(
-                child: Icon(
-                  Icons.check,
-                  color: Colors.green[900],
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 16),
-              ),
-              Text(
-                "Mark as Complete",
-                style: TextStyle(color: Colors.green[900]),
-              )
-            ],
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-          ),
-          color: Colors.green,
-          margin: EdgeInsets.symmetric(vertical: 16),
-        ),
-        secondaryBackground: Container(
-          child: Row(
-            children: [
-              Text(
-                "Delete",
-                style: TextStyle(color: Colors.red[900]),
-              ),
-              Padding(
-                child: Icon(
-                  Icons.delete,
-                  color: Colors.red[900],
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 16),
-              ),
-            ],
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.center,
-          ),
-          color: Colors.red,
-          margin: EdgeInsets.symmetric(vertical: 16),
-        ),
+        background: note.complete
+            ? dismissBackground(Colors.red, Colors.black, Icons.delete,
+                "Delete", MainAxisAlignment.start)
+            : dismissBackground(Colors.green, Colors.black, Icons.check,
+                "Completed", MainAxisAlignment.start),
+        secondaryBackground: note.complete
+            ? dismissBackground(Colors.green, Colors.black, Icons.check,
+                "Current", MainAxisAlignment.end)
+            : dismissBackground(Colors.red, Colors.black, Icons.delete,
+                "Delete", MainAxisAlignment.end),
         direction: DismissDirection.horizontal,
         onDismissed: (direction) {
           if (direction == DismissDirection.startToEnd) {
-            Scaffold.of(context).showSnackBar(SnackBar(
-              content: Text('Swipe Right'),
-              duration: Duration(seconds: 1, milliseconds: 50),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-            ));
+            note.complete
+                ? onDelete(note.noteId, note.complete)
+                : onToggleComplete(note.noteId, note.complete);
           } else {
-            Scaffold.of(context).showSnackBar(SnackBar(
-              content: Text('Swipe Left'),
-              duration: Duration(seconds: 1, milliseconds: 50),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-            ));
+            note.complete
+                ? onToggleComplete(note.noteId, note.complete)
+                : onDelete(note.noteId, note.complete);
           }
         }));
   }
+}
+
+Widget dismissBackground(Color backgroundColor, Color accentColor,
+    IconData icon, String label, MainAxisAlignment alignment) {
+  return Container(
+    child: Row(
+      children: alignment == MainAxisAlignment.start
+          ? [
+              Padding(
+                child: Icon(
+                  icon,
+                  color: accentColor,
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 16),
+              ),
+              Text(
+                label,
+                style: TextStyle(color: accentColor),
+              ),
+            ]
+          : [
+              Text(
+                label,
+                style: TextStyle(color: accentColor),
+              ),
+              Padding(
+                child: Icon(
+                  icon,
+                  color: accentColor,
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 16),
+              ),
+            ],
+      mainAxisAlignment: alignment,
+      crossAxisAlignment: CrossAxisAlignment.center,
+    ),
+    color: backgroundColor,
+    margin: EdgeInsets.symmetric(vertical: 16),
+  );
 }

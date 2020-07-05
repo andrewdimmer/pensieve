@@ -24,10 +24,40 @@ export const createNote = (content: string) => {
  * @param content The new message to save to the note.
  * @returns A promise containing true if the update was successful; false otherwise.
  */
-export const editNote = (noteId: string, content: string) => {
+export const editNoteContent = (noteId: string, content: string) => {
   return notesRef
     .doc(noteId)
     .update({ content, order: Date.now() })
+    .then(() => true)
+    .catch(logReturnFalse);
+};
+
+/**
+ * Modifies the completeness of a note already in the database.
+ *
+ * @param noteId The noteId of the note to update.
+ * @param complete The new completeness flag to save to the note.
+ * @returns A promise containing true if the update was successful; false otherwise.
+ */
+export const editNoteCompleteness = (noteId: string, complete: boolean) => {
+  return notesRef
+    .doc(noteId)
+    .update({ complete, order: Date.now() })
+    .then(() => true)
+    .catch(logReturnFalse);
+};
+
+/**
+ * Modifies the order of a note already in the database.
+ *
+ * @param noteId The noteId of the note to update.
+ * @param order The new order to save to the note.
+ * @returns A promise containing true if the update was successful; false otherwise.
+ */
+export const editNoteOrder = (noteId: string, order: number) => {
+  return notesRef
+    .doc(noteId)
+    .update({ order })
     .then(() => true)
     .catch(logReturnFalse);
 };
