@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pensieve/Classes/dataObjects.dart';
-import 'package:pensieve/Database/getNotes.dart';
+import 'package:pensieve/Database/manageNotesDatabase.dart';
 import 'package:pensieve/Pages/noteList.dart';
 import 'package:pensieve/Widgets/bottomNavBar.dart';
 import 'package:pensieve/Widgets/bottomNavBarButton.dart';
@@ -56,6 +56,7 @@ class _HomeState extends State<Home> {
   }
 
   void _onToggleComplete(String noteId, bool completed) {
+    editNoteCompletenessDatabase(noteId, !completed);
     setState(() {
       NoteObject note = (completed ? _pastList : _currentList).removeAt(
         _getIndex(noteId, completed),
@@ -70,6 +71,7 @@ class _HomeState extends State<Home> {
   }
 
   void _onDelete(String noteId, bool completed) {
+    deleteNoteDatabase(noteId);
     setState(() {
       (completed ? _pastList : _currentList).removeAt(
         _getIndex(noteId, completed),

@@ -8,7 +8,6 @@ class NoteObject {
   bool complete;
 
   factory NoteObject.fromJson(Map<String, dynamic> json) {
-    print(json.toString());
     return NoteObject(
       noteId: json["noteId"],
       content: json["content"],
