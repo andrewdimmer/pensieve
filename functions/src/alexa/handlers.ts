@@ -74,6 +74,32 @@ const getAlexaResponse = async (
     return AlexaDefaultAnswer;
   } else if (
     type.indexOf("IntentRequest") >= 0 &&
+    name.indexOf("AddNote") >= 0
+  ) {
+    return createNote(note)
+      .then((noteId) => {
+        if (noteId) {
+          AlexaDefaultAnswer.response.outputSpeech.ssml =
+            "<speak>" + "Note added: " + note + "</speak>";
+          AlexaDefaultAnswer.response.card.content = "Note added: " + note;
+        } else {
+          AlexaDefaultAnswer.response.outputSpeech.ssml =
+            "<speak>There was an error adding your note. Please try again later.</speak>";
+          AlexaDefaultAnswer.response.card.content =
+            "There was an error adding your note. Please try again later.";
+        }
+        return AlexaDefaultAnswer;
+      })
+      .catch((err) => {
+        console.log(err);
+        AlexaDefaultAnswer.response.outputSpeech.ssml =
+          "<speak>There was an error adding your note. Please try again later.</speak>";
+        AlexaDefaultAnswer.response.card.content =
+          "There was an error adding your note. Please try again later.";
+        return AlexaDefaultAnswer;
+      });
+  } else if (
+    type.indexOf("IntentRequest") >= 0 &&
     name.indexOf("AddTag") >= 0
   ) {
     AlexaDefaultAnswer.response.outputSpeech.ssml =
