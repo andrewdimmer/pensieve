@@ -147,6 +147,40 @@ class _HomeState extends State<Home> {
       },
     );
   }
+
+  String _getTagName(String tagId) {
+    for (TagObject tagObject in _tags) {
+      if (tagObject.tagId == tagId) {
+        return tagObject.tagName;
+      }
+    }
+    return "";
+  }
+
+  List<String> _getUnusedTags(List<String> tagIds) {
+    List<String> unused = [];
+    for (TagObject tagObject in _tags) {
+      if (!tagIds.contains(tagObject.tagId)) {
+        unused.add(tagObject.tagId);
+      }
+    }
+    return unused;
+  }
+
+  void _addTag(String noteId, String tagId, bool completed) {
+    setState(() {
+      (completed ? _pastList : _currentList)[_getIndex(noteId, completed)]
+          .tags
+          .add(tagId);
+    });
+  }
+
+  void _removeTag(String noteId, String tagId, bool completed) {
+    setState(() {
+      (completed ? _pastList : _currentList)[_getIndex(noteId, completed)]
+          .tags
+          .remove(tagId);
+    });
   }
 
   @override
@@ -170,6 +204,10 @@ class _HomeState extends State<Home> {
                   refreshList: _refreshLists,
                   onToggleComplete: _onToggleComplete,
                   onDelete: _onDelete,
+                  getTagName: _getTagName,
+                  getUnusedTags: _getUnusedTags,
+                  addTag: _addTag,
+                  removeTag: _removeTag,
                 ),
                 NoteList(
                   header: Text("Past Thoughts"),
@@ -178,6 +216,10 @@ class _HomeState extends State<Home> {
                   refreshList: _refreshLists,
                   onToggleComplete: _onToggleComplete,
                   onDelete: _onDelete,
+                  getTagName: _getTagName,
+                  getUnusedTags: _getUnusedTags,
+                  addTag: _addTag,
+                  removeTag: _removeTag,
                 )
               ],
               controller: _pageController,

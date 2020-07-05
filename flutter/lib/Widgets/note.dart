@@ -2,12 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:pensieve/Classes/dataObjects.dart';
 
 class Note extends StatelessWidget {
-  Note({Key key, this.note, this.onToggleComplete, this.onDelete})
+  Note(
+      {Key key,
+      this.note,
+      this.onToggleComplete,
+      this.onDelete,
+      this.getTagName,
+      this.getUnusedTags,
+      this.addTag,
+      this.removeTag})
       : super(key: key);
 
   final NoteObject note;
   final Function onToggleComplete;
   final Function onDelete;
+  final Function getTagName;
+  final Function getUnusedTags;
+  final Function addTag;
+  final Function removeTag;
 
   Widget build(BuildContext context) {
     return (Dismissible(
@@ -16,20 +28,75 @@ class Note extends StatelessWidget {
             child: Row(
               children: [
                 Padding(
-                    child: IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () {},
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 32)),
+                  child: IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {},
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 32),
+                ),
                 Expanded(
-                  child: Text(note.content),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          child: Text(note.content),
+                          padding: EdgeInsets.fromLTRB(8, 16, 8, 0),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Row(
+                            children: note.tags.map((tagId) {
+                              return Padding(
+                                child: Chip(
+                                  label: Text(getTagName(tagId)),
+                                  onDeleted: () {
+                                    removeTag(
+                                      note.noteId,
+                                      tagId,
+                                      note.complete,
+                                    );
+                                  },
+                                ),
+                                padding: EdgeInsets.fromLTRB(8, 0, 8, 8),
+                              );
+                            }).toList(),
+                          ),
+                          Row(
+                            children:
+                                getUnusedTags(note.tags).map<Widget>((tagId) {
+                              return Padding(
+                                child: Chip(
+                                  label: Text(getTagName(tagId)),
+                                  deleteButtonTooltipMessage: "Add",
+                                  deleteIcon: Icon(Icons.add_circle, size: 18),
+                                  onDeleted: () {
+                                    addTag(
+                                      note.noteId,
+                                      tagId,
+                                      note.complete,
+                                    );
+                                  },
+                                ),
+                                padding: EdgeInsets.fromLTRB(8, 0, 8, 8),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      ),
+                    ],
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
                 ),
                 Padding(
-                    child: IconButton(
-                      icon: Icon(Icons.drag_handle),
-                      onPressed: () {},
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 32)),
+                  child: IconButton(
+                    icon: Icon(Icons.drag_handle),
+                    onPressed: () {},
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 32),
+                ),
               ],
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
