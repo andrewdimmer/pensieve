@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:pensieve/Classes/dataObjects.dart';
 import 'package:pensieve/Database/manageNotesDatabase.dart';
@@ -7,6 +9,7 @@ import 'package:pensieve/Pages/tagList.dart';
 import 'package:pensieve/Widgets/bottomNavBar.dart';
 import 'package:pensieve/Widgets/bottomNavBarButton.dart';
 import 'package:pensieve/Widgets/loading.dart';
+import 'package:pensieve/Widgets/tagFilterBar.dart';
 
 class Home extends StatefulWidget {
   Home({Key key, this.title}) : super(key: key);
@@ -41,6 +44,7 @@ class _HomeState extends State<Home> {
   List<TagObject> _tags;
   List<NoteObject> _currentList;
   List<NoteObject> _pastList;
+  List<String> _activeFilters = [];
 
   Widget _fab = _getAddNewFab("New Thought", () {});
 
@@ -131,9 +135,9 @@ class _HomeState extends State<Home> {
   Future<void> _refreshLists() {
     return getTagsFromDatabase().then(
       (newTags) {
-        return getNotesFromDatabase(false, []).then(
+        return getNotesFromDatabase(false, _activeFilters).then(
           (newCurrentList) {
-            return getNotesFromDatabase(true, []).then(
+            return getNotesFromDatabase(true, _activeFilters).then(
               (newPastList) => setState(
                 () {
                   _tags = newTags;
@@ -185,6 +189,24 @@ class _HomeState extends State<Home> {
     });
   }
 
+  void _addTagToFilter(String tagId) {
+    setState(() {
+      _activeFilters.add(tagId);
+      _currentList = null;
+      _pastList = null;
+      _refreshLists();
+    });
+  }
+
+  void _removeTagFromFilter(String tagId) {
+    setState(() {
+      _activeFilters.remove(tagId);
+      _currentList = null;
+      _pastList = null;
+      _refreshLists();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -200,7 +222,14 @@ class _HomeState extends State<Home> {
                   refreshList: _refreshLists,
                 ),
                 NoteList(
-                  header: Text("Current Thoughts"),
+                  header: TagFilterBar(
+                    title: "Current Thoughts",
+                    filterOptions: new FilterOptions(
+                        activeFilters: _activeFilters.toList(),
+                        tags: _tags.toList()),
+                    addTagToFilter: _addTagToFilter,
+                    removeTagFromFilter: _removeTagFromFilter,
+                  ),
                   list: _currentList,
                   handleReorder: _handleReorderFactory(_currentList),
                   refreshList: _refreshLists,
@@ -212,7 +241,14 @@ class _HomeState extends State<Home> {
                   removeTag: _removeTag,
                 ),
                 NoteList(
-                  header: Text("Past Thoughts"),
+                  header: TagFilterBar(
+                    title: "Past Thoughts",
+                    filterOptions: new FilterOptions(
+                        activeFilters: _activeFilters.toList(),
+                        tags: _tags.toList()),
+                    addTagToFilter: _addTagToFilter,
+                    removeTagFromFilter: _removeTagFromFilter,
+                  ),
                   list: _pastList,
                   handleReorder: _handleReorderFactory(_pastList),
                   refreshList: _refreshLists,

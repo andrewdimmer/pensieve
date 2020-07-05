@@ -77,7 +77,7 @@ const getAlexaResponse = async (
     type.indexOf("IntentRequest") >= 0 &&
     name.indexOf("AddNote") >= 0
   ) {
-    return createNote(note)
+    return createNote(note.replace(/"/g, ""))
       .then((noteId) => {
         if (noteId) {
           AlexaDefaultAnswer.response.outputSpeech.ssml =

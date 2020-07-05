@@ -45,7 +45,7 @@ export const getNotes = (
  * @returns An array of all of the tags in the database.
  */
 export const getTags = (tagName?: string): Promise<Tag[]> => {
-  let activeRef = tagsRef.orderBy("tagName", "desc");
+  let activeRef = tagsRef.orderBy("tagName", "asc");
 
   // If a name is specified, get all tags with that name and only that name
   if (tagName) {
