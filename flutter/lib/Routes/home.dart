@@ -16,6 +16,14 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  _HomeState() {
+    getNotesFromDatabase([]).then((value) {
+      setState(() {
+        _list = value;
+      });
+    });
+  }
+
   final _pageController = PageController(initialPage: 1);
 
   List<NoteObject> _list;
