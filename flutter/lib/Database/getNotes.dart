@@ -3,10 +3,15 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pensieve/Classes/dataObjects.dart';
 
-Future<List<NoteObject>> getNotesFromDatabase(List<String> tags) async {
+Future<List<NoteObject>> getNotesFromDatabase(
+    bool complete, List<String> tags) async {
   final response = await http.post(
       'https://us-central1-hackcation2020-gcp.cloudfunctions.net/get_notes_flutter',
-      body: '{"tags": ' + tags.toString() + '}');
+      body: '{"tags": ' +
+          tags.toString() +
+          ', "complete": ' +
+          complete.toString() +
+          '}');
 
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response,
