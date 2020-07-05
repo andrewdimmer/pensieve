@@ -12,7 +12,7 @@ export const createNote = (content: string) => {
   const noteId = nanoid();
   notesRef
     .doc(noteId)
-    .set({ noteId, content, tags: [], updated: new Date(), complete: false })
+    .set({ noteId, content, tags: [], order: Date.now(), complete: false })
     .then(() => noteId)
     .catch(logReturnEmptyString);
 };
@@ -27,7 +27,7 @@ export const createNote = (content: string) => {
 export const editNote = (noteId: string, content: string) => {
   notesRef
     .doc(noteId)
-    .update({ content, updated: new Date() })
+    .update({ content, order: Date.now() })
     .then(() => true)
     .catch(logReturnFalse);
 };
