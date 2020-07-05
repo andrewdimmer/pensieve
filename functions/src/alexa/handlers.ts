@@ -137,16 +137,16 @@ const getAlexaResponse = async (
     name.indexOf("GetNotes") >= 0
   ) {
     AlexaDefaultAnswer.response.outputSpeech.ssml =
-      "<speak>" + "Getting your last " + number + " notes.";
+      "<speak>" + "Getting your last " + number + " notes. ";
     AlexaDefaultAnswer.response.card.content =
       "Getting your last " + number + " notes. \n";
     return getNotes(false, [], parseInt(number.toString().replace(/"/g, "")))
       .then((notes) => {
         for (let i = 0; i < notes.length; i++) {
           AlexaDefaultAnswer.response.outputSpeech.ssml +=
-            "Note " + i + ": " + notes[i].content;
+            "Note " + (i + 1) + ": " + notes[i].content + ". ";
           AlexaDefaultAnswer.response.card.content +=
-            "Note " + i + ": " + notes[i].content + "\n";
+            "Note " + (i + 1) + ": " + notes[i].content + "\n ";
         }
         AlexaDefaultAnswer.response.outputSpeech.ssml += "</speak>";
         return AlexaDefaultAnswer;
@@ -164,7 +164,7 @@ const getAlexaResponse = async (
     name.indexOf("GetTaggedNotes") >= 0
   ) {
     AlexaDefaultAnswer.response.outputSpeech.ssml =
-      "<speak>" + "Getting your last " + number + " notes.";
+      "<speak>" + "Getting your last " + number + " notes. ";
     AlexaDefaultAnswer.response.card.content =
       "Getting your last " + number + " notes. \n";
     const tagsWithIds = await getTags(cleanRawTagName(tag));
@@ -179,10 +179,11 @@ const getAlexaResponse = async (
       .then((notes) => {
         for (let i = 0; i < notes.length; i++) {
           AlexaDefaultAnswer.response.outputSpeech.ssml +=
-            "<speak>" + "Note " + i + ": " + notes[i].content + "</speak>";
+            "Note " + (i + 1) + ": " + notes[i].content + ". ";
           AlexaDefaultAnswer.response.card.content +=
-            "Note " + i + ": " + notes[i].content + "\n";
+            "Note " + (i + 1) + ": " + notes[i].content + "\n ";
         }
+        AlexaDefaultAnswer.response.outputSpeech.ssml += "</speak>";
         return AlexaDefaultAnswer;
       })
       .catch((err) => {
