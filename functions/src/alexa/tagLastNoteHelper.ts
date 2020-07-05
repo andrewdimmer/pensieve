@@ -5,6 +5,7 @@ import { addTag } from "../cross-platform/tagUntag";
 import { logReturnEmptyString } from "../helpers/errorHelpers";
 import { cleanRawTagName } from "../helpers/tagHelpers";
 
+
 /**
  * Addes the given tag to the last updated note.
  *
