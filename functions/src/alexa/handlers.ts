@@ -104,17 +104,17 @@ const getAlexaResponse = async (
     name.indexOf("AddTag") >= 0
   ) {
     return tagLastNoteHelper(tag)
-      .then((tagId) => {
-        if (tagId) {
+      .then((noteContent) => {
+        if (noteContent) {
           AlexaDefaultAnswer.response.outputSpeech.ssml =
             "<speak>" +
             "Added tag: " +
             tag +
-            "to " +
-            "your previous note" +
+            "to the note " +
+            noteContent +
             "</speak>";
           AlexaDefaultAnswer.response.card.content =
-            "Added tag: " + tag + " to " + "your previous note";
+            "Added tag: " + tag + " to the note" + noteContent;
           return AlexaDefaultAnswer;
         } else {
           AlexaDefaultAnswer.response.outputSpeech.ssml =
