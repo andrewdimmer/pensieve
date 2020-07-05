@@ -110,7 +110,7 @@ const getAlexaResponse = async (
             "<speak>" +
             "Added tag: " +
             tag +
-            "to " +
+            " to " +
             "your previous note" +
             "</speak>";
           AlexaDefaultAnswer.response.card.content =
@@ -137,16 +137,15 @@ const getAlexaResponse = async (
     name.indexOf("GetNotes") >= 0
   ) {
     AlexaDefaultAnswer.response.outputSpeech.ssml =
-      "<speak>" + "Getting your last " + number + " notes.";
-    AlexaDefaultAnswer.response.card.content =
-      "Getting your last " + number + " notes. \n";
-    return getNotes(false, [], number)
+      "<speak>" + "Getting your notes.";
+    AlexaDefaultAnswer.response.card.content = "Getting your notes. \n";
+    return getNotes(false, [], 5)
       .then((notes) => {
         for (let i = 0; i < notes.length; i++) {
           AlexaDefaultAnswer.response.outputSpeech.ssml +=
-            "<speak>" + "Note " + i + ": " + notes[i].content;
+            "Note " + (i + 1) + ": " + notes[i].content + ". ";
           AlexaDefaultAnswer.response.card.content +=
-            "Note " + i + ": " + notes[i].content + "\n";
+            "Note " + (i + 1) + ": " + notes[i].content + "\n ";
         }
         AlexaDefaultAnswer.response.outputSpeech.ssml += "</speak>";
         return AlexaDefaultAnswer;
@@ -164,19 +163,19 @@ const getAlexaResponse = async (
     name.indexOf("GetTaggedNotes") >= 0
   ) {
     AlexaDefaultAnswer.response.outputSpeech.ssml =
-      "<speak>" + "Getting your last " + number + " notes." + "</speak>";
-    AlexaDefaultAnswer.response.card.content =
-      "Getting your last " + number + " notes. \n";
+      "<speak>" + "Getting your notes. ";
+    AlexaDefaultAnswer.response.card.content = "Getting your notes. \n";
     let notes: Note[] = [];
-    return getNotes(false, [tag], number)
+    return getNotes(false, [tag], 5)
       .then((value) => {
         notes = value;
         for (let i = 0; i < notes.length; i++) {
           AlexaDefaultAnswer.response.outputSpeech.ssml +=
-            "<speak>" + "Note " + i + ": " + notes[i].content + "</speak>";
+            "Note " + (i + 1) + ": " + notes[i].content;
           AlexaDefaultAnswer.response.card.content +=
-            "Note " + i + ": " + notes[i].content + "\n";
+            "Note " + (i + 1) + ": " + notes[i].content + "\n";
         }
+        AlexaDefaultAnswer.response.outputSpeech.ssml += "</speak>";
         return AlexaDefaultAnswer;
       })
       .catch((err) => {
