@@ -39,12 +39,22 @@ export const getNotes = (
 };
 
 /**
- * Gets all of the tags from the database.
+ * Gets all of the tags from the database with the given name (if provided).
  *
+ * @param tagName The name of the tag to match. If no tagName is provided, gets all tags.
  * @returns An array of all of the tags in the database.
  */
-export const getTags = (): Promise<Tag[]> => {
-  return tagsRef
+export const getTags = (tagName?: string): Promise<Tag[]> => {
+  let activeRef:
+    | firebase.firestore.CollectionReference<firebase.firestore.DocumentData>
+    | firebase.firestore.Query<firebase.firestore.DocumentData> = tagsRef;
+
+  // If a name is specified, get all tags with that name and only that name
+  if (tagName) {
+    activeRef = activeRef.where("tagName", "==", tagName);
+  }
+
+  return activeRef
     .orderBy("tagName", "desc")
     .get()
     .then((queryResults) => {
