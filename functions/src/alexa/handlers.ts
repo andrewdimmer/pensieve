@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import { createNote } from "../cross-platform/manageNotes";
 import { getNotes } from "../cross-platform/getNotesAndTags";
 import { Note } from "../@types";
+import { tagLastNoteHelper } from "./tagLastNoteHelper";
 
 export const alexaSkill = functions.https.onRequest((request, response) => {
   const type = JSON.stringify(request.body.request.type);
@@ -102,16 +103,35 @@ const getAlexaResponse = async (
     type.indexOf("IntentRequest") >= 0 &&
     name.indexOf("AddTag") >= 0
   ) {
-    AlexaDefaultAnswer.response.outputSpeech.ssml =
-      "<speak>" +
-      "Added tag: " +
-      tag +
-      "to: " +
-      "your previous note" +
-      "</speak>";
-    AlexaDefaultAnswer.response.card.content =
-      "Added tag: " + tag + " to: " + "your previous note";
-    return AlexaDefaultAnswer;
+    return tagLastNoteHelper(tag)
+      .then((tagId) => {
+        if (tagId) {
+          AlexaDefaultAnswer.response.outputSpeech.ssml =
+            "<speak>" +
+            "Added tag: " +
+            tag +
+            "to " +
+            "your previous note" +
+            "</speak>";
+          AlexaDefaultAnswer.response.card.content =
+            "Added tag: " + tag + " to " + "your previous note";
+          return AlexaDefaultAnswer;
+        } else {
+          AlexaDefaultAnswer.response.outputSpeech.ssml =
+            "<speak>There was an error adding your note. Please try again later.</speak>";
+          AlexaDefaultAnswer.response.card.content =
+            "There was an error adding your note. Please try again later.";
+        }
+        return AlexaDefaultAnswer;
+      })
+      .catch((err) => {
+        console.log(err);
+        AlexaDefaultAnswer.response.outputSpeech.ssml =
+          "<speak>There was an error adding your note. Please try again later.</speak>";
+        AlexaDefaultAnswer.response.card.content =
+          "There was an error adding your note. Please try again later.";
+        return AlexaDefaultAnswer;
+      });
   } else if (
     type.indexOf("IntentRequest") >= 0 &&
     name.indexOf("GetNotes") >= 0
