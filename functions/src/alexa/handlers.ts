@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
+import { getNotes, getTags } from "../cross-platform/getNotesAndTags";
 import { createNote } from "../cross-platform/manageNotes";
-import { getNotes } from "../cross-platform/getNotesAndTags";
-import { Note } from "../@types";
+import { cleanRawTagName } from "../helpers/tagHelpers";
 import { tagLastNoteHelper } from "./tagLastNoteHelper";
 
 export const alexaSkill = functions.https.onRequest((request, response) => {
@@ -167,10 +167,16 @@ const getAlexaResponse = async (
       "<speak>" + "Getting your last " + number + " notes." + "</speak>";
     AlexaDefaultAnswer.response.card.content =
       "Getting your last " + number + " notes. \n";
-    let notes: Note[] = [];
-    return getNotes(false, [tag], number)
-      .then((value) => {
-        notes = value;
+    const tagsWithIds = await getTags(cleanRawTagName(tag));
+    if (tagsWithIds.length === 0) {
+      AlexaDefaultAnswer.response.outputSpeech.ssml +=
+        "<speak>Sorry, but no tag exists with that name.</speak>";
+      AlexaDefaultAnswer.response.card.content +=
+        "Sorry, but no tag exists with that name.";
+      return AlexaDefaultAnswer;
+    }
+    return getNotes(false, [tagsWithIds[0].tagId], number)
+      .then((notes) => {
         for (let i = 0; i < notes.length; i++) {
           AlexaDefaultAnswer.response.outputSpeech.ssml +=
             "<speak>" + "Note " + i + ": " + notes[i].content + "</speak>";
