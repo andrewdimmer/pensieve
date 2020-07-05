@@ -77,6 +77,21 @@ class _HomeState extends State<Home> {
     });
   }
 
+  Future<void> _refreshLists() {
+    return getNotesFromDatabase(false, []).then(
+      (newCurrentList) {
+        return getNotesFromDatabase(true, []).then(
+          (newPastList) => setState(
+            () {
+              _currentList = newCurrentList;
+              _pastList = newPastList;
+            },
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,16 +106,19 @@ class _HomeState extends State<Home> {
                   header: Text("Tags"),
                   list: _currentList,
                   handleReorder: _handleReorderFactory(_currentList),
+                  refreshList: _refreshLists,
                 ),
                 NoteList(
                   header: Text("Current Thoughts"),
                   list: _currentList,
                   handleReorder: _handleReorderFactory(_currentList),
+                  refreshList: _refreshLists,
                 ),
                 NoteList(
                   header: Text("Past Thoughts"),
                   list: _pastList,
                   handleReorder: _handleReorderFactory(_pastList),
+                  refreshList: _refreshLists,
                 )
               ],
               controller: _pageController,

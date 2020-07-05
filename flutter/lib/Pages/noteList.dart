@@ -29,9 +29,7 @@ class NoteList extends StatelessWidget {
         onReorder: handleReorder,
         padding: EdgeInsets.only(top: 16),
       ),
-      onRefresh: () async {
-        getNotesFromDatabase(false, []);
-      },
+      onRefresh: refreshList,
     );
   }
 }
