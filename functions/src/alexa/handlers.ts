@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import { createNote } from "../cross-platform/manageNotes";
-import { getNotesLimited } from "../cross-platform/getNotesAndTags";
+import { getNotes } from "../cross-platform/getNotesAndTags";
 import { Note } from "../@types";
 
 export const alexaSkill = functions.https.onRequest((request, response) => {
@@ -12,15 +12,15 @@ export const alexaSkill = functions.https.onRequest((request, response) => {
 
   try {
     name = JSON.stringify(request.body.request.intent.name);
-    if (name == '"AddNote"') {
+    if (name.indexOf("AddNote") >= 0) {
       note = JSON.stringify(request.body.request.intent.slots["note"].value);
-    } else if (name == '"AddTag"') {
+    } else if (name.indexOf("AddTag") >= 0) {
       tag = JSON.stringify(request.body.request.intent.slots["tag"].value);
-    } else if (name == '"GetNotes"') {
+    } else if (name.indexOf("GetNotes") >= 0) {
       number = parseInt(
         JSON.stringify(request.body.request.intent.slots["number"].value)
       );
-    } else if (name == '"GetTaggedNotes"') {
+    } else if (name.indexOf("GetTaggedNotes") >= 0) {
       // number = parseInt(
       //   JSON.stringify(request.body.request.intent.slots["number"].value)
       // );
@@ -28,18 +28,29 @@ export const alexaSkill = functions.https.onRequest((request, response) => {
       tag = JSON.stringify(request.body.request.intent.slots["tag"].value);
     }
   } catch (e) {}
-  const result = getAlexaResponse(type, name, note, tag, number);
-  response.send(result);
+
+  getAlexaResponse(type, name, note, tag, number)
+    .then((results) => {
+      response.status(200).send(results);
+    })
+    .catch((err) => {
+      console.log(err);
+      response
+        .status(500)
+        .send(
+          "Sorry, but we're unable to fulfill your request at this time. Please try again later."
+        );
+    });
 });
 
-const getAlexaResponse = (
+const getAlexaResponse = async (
   type: string,
   name: string,
   note: string,
   tag: string,
   number: number
 ) => {
-  var AlexaDefaultAnswer = {
+  const AlexaDefaultAnswer = {
     version: "1.0",
     response: {
       outputSpeech: {
@@ -59,15 +70,12 @@ const getAlexaResponse = (
     sessionAttributes: {},
   };
 
-  if (type == '"LaunchRequest"') {
+  if (type.indexOf("LaunchRequest") >= 0) {
     return AlexaDefaultAnswer;
-  } else if (type == '"IntentRequest"' && name == '"AddNote"') {
-    createNote(note);
-    AlexaDefaultAnswer.response.outputSpeech.ssml =
-      "<speak>" + "Note added: " + note + "</speak>";
-    AlexaDefaultAnswer.response.card.content = "Note added: " + note;
-    return AlexaDefaultAnswer;
-  } else if (type == '"IntentRequest"' && name == '"AddTag"') {
+  } else if (
+    type.indexOf("IntentRequest") >= 0 &&
+    name.indexOf("AddTag") >= 0
+  ) {
     AlexaDefaultAnswer.response.outputSpeech.ssml =
       "<speak>" +
       "Added tag: " +
@@ -78,39 +86,61 @@ const getAlexaResponse = (
     AlexaDefaultAnswer.response.card.content =
       "Added tag: " + tag + " to: " + "your previous note";
     return AlexaDefaultAnswer;
-  } else if (type == '"IntentRequest"' && name == '"GetNotes"') {
+  } else if (
+    type.indexOf("IntentRequest") >= 0 &&
+    name.indexOf("GetNotes") >= 0
+  ) {
     AlexaDefaultAnswer.response.outputSpeech.ssml =
       "<speak>" + "Getting your last " + number + " notes.";
     AlexaDefaultAnswer.response.card.content =
       "Getting your last " + number + " notes. \n";
-    let notes: Note[] = [];
-    return getNotesLimited([], number).then((value) => {
-      notes = value;
-      for (let i = 0; i < notes.length; i++) {
-        AlexaDefaultAnswer.response.outputSpeech.ssml +=
-          "<speak>" + "Note " + i + ": " + notes[i].content;
-        AlexaDefaultAnswer.response.card.content +=
-          "Note " + i + ": " + notes[i].content + "\n";
-      }
-      AlexaDefaultAnswer.response.outputSpeech.ssml += "</speak>";
-      return AlexaDefaultAnswer;
-    });
-  } else if (type == '"IntentRequest"' && name == '"GetTaggedNotes"') {
+    return getNotes(false, [], number)
+      .then((notes) => {
+        for (let i = 0; i < notes.length; i++) {
+          AlexaDefaultAnswer.response.outputSpeech.ssml +=
+            "<speak>" + "Note " + i + ": " + notes[i].content;
+          AlexaDefaultAnswer.response.card.content +=
+            "Note " + i + ": " + notes[i].content + "\n";
+        }
+        AlexaDefaultAnswer.response.outputSpeech.ssml += "</speak>";
+        return AlexaDefaultAnswer;
+      })
+      .catch((err) => {
+        console.log(err);
+        AlexaDefaultAnswer.response.outputSpeech.ssml =
+          "<speak>There was an error completing your request. Please try again later.</speak>";
+        AlexaDefaultAnswer.response.card.content =
+          "There was an error completing your request. Please try again later.";
+        return AlexaDefaultAnswer;
+      });
+  } else if (
+    type.indexOf("IntentRequest") >= 0 &&
+    name.indexOf("GetTaggedNotes") >= 0
+  ) {
     AlexaDefaultAnswer.response.outputSpeech.ssml =
       "<speak>" + "Getting your last " + number + " notes." + "</speak>";
     AlexaDefaultAnswer.response.card.content =
       "Getting your last " + number + " notes. \n";
     let notes: Note[] = [];
-    return getNotesLimited([tag], number).then((value) => {
-      notes = value;
-      for (let i = 0; i < notes.length; i++) {
-        AlexaDefaultAnswer.response.outputSpeech.ssml +=
-          "<speak>" + "Note " + i + ": " + notes[i].content + "</speak>";
-        AlexaDefaultAnswer.response.card.content +=
-          "Note " + i + ": " + notes[i].content + "\n";
-      }
-      return AlexaDefaultAnswer;
-    });
+    return getNotes(false, [tag], number)
+      .then((value) => {
+        notes = value;
+        for (let i = 0; i < notes.length; i++) {
+          AlexaDefaultAnswer.response.outputSpeech.ssml +=
+            "<speak>" + "Note " + i + ": " + notes[i].content + "</speak>";
+          AlexaDefaultAnswer.response.card.content +=
+            "Note " + i + ": " + notes[i].content + "\n";
+        }
+        return AlexaDefaultAnswer;
+      })
+      .catch((err) => {
+        console.log(err);
+        AlexaDefaultAnswer.response.outputSpeech.ssml =
+          "<speak>There was an error completing your request. Please try again later.</speak>";
+        AlexaDefaultAnswer.response.card.content =
+          "There was an error completing your request. Please try again later.";
+        return AlexaDefaultAnswer;
+      });
   } else {
     return AlexaDefaultAnswer;
   }
