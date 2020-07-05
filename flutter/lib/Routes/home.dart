@@ -55,6 +55,39 @@ class _HomeState extends State<Home> {
     };
   }
 
+  void _onToggleComplete(String noteId, bool completed) {
+    setState(() {
+      NoteObject note = (completed ? _pastList : _currentList).removeAt(
+        _getIndex(noteId, completed),
+      );
+      note.complete = !note.complete;
+      if ((completed ? _currentList : _pastList).length == 0) {
+        (completed ? _currentList : _pastList).add(note);
+      } else {
+        (completed ? _currentList : _pastList).insert(0, note);
+      }
+    });
+  }
+
+  void _onDelete(String noteId, bool completed) {
+    setState(() {
+      (completed ? _pastList : _currentList).removeAt(
+        _getIndex(noteId, completed),
+      );
+    });
+  }
+
+  int _getIndex(String noteId, bool completed) {
+    for (int i = 0;
+        completed ? i < _pastList.length : i < _currentList.length;
+        i++) {
+      if ((completed ? _pastList : _currentList)[i].noteId == noteId) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   static Widget _getAddNewFab(String label, Function onPressed) {
     return FloatingActionButton.extended(
       onPressed: onPressed,
@@ -113,12 +146,16 @@ class _HomeState extends State<Home> {
                   list: _currentList,
                   handleReorder: _handleReorderFactory(_currentList),
                   refreshList: _refreshLists,
+                  onToggleComplete: _onToggleComplete,
+                  onDelete: _onDelete,
                 ),
                 NoteList(
                   header: Text("Past Thoughts"),
                   list: _pastList,
                   handleReorder: _handleReorderFactory(_pastList),
                   refreshList: _refreshLists,
+                  onToggleComplete: _onToggleComplete,
+                  onDelete: _onDelete,
                 )
               ],
               controller: _pageController,
