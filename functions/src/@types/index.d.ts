@@ -1,7 +1,7 @@
 export declare interface Note {
   noteId: string;
   content: string;
-  updated: Date;
+  order: number;
   tags: string[];
   complete: boolean;
 }

@@ -1,6 +1,6 @@
 import { alexaSkill } from "./alexa/handlers";
-
-// Start writing Firebase Functions
-// https://firebase.google.com/docs/functions/typescript
+import { getNotesFlutter } from "./flutter/getNotesFlutter";
 
 export const alexa_handlers = alexaSkill;
+
+export const get_notes_flutter = getNotesFlutter;
