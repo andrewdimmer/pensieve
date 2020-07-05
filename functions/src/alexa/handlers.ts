@@ -137,12 +137,12 @@ const getAlexaResponse = async (
     name.indexOf("GetNotes") >= 0
   ) {
     AlexaDefaultAnswer.response.outputSpeech.ssml =
-      "<speak>" + "Getting your last " + number + " notes. ";
+      "<speak>" + "Getting your last " + 5 + " notes. ";
     AlexaDefaultAnswer.response.card.content =
-      "Getting your last " + number + " notes. \n";
-    return getNotes(false, [], parseInt(number.toString().replace(/"/g, "")))
+      "Getting your last " + 5 + " notes. \n";
+    return getNotes(false, [], 5)
       .then((notes) => {
-        for (let i = 0; i < notes.length; i++) {
+        for (let i = 0; i < 5; i++) {
           AlexaDefaultAnswer.response.outputSpeech.ssml +=
             "Note " + (i + 1) + ": " + notes[i].content + ". ";
           AlexaDefaultAnswer.response.card.content +=
@@ -164,9 +164,9 @@ const getAlexaResponse = async (
     name.indexOf("GetTaggedNotes") >= 0
   ) {
     AlexaDefaultAnswer.response.outputSpeech.ssml =
-      "<speak>" + "Getting your last " + number + " notes. ";
+      "<speak>" + "Getting your last " + 5 + " notes. ";
     AlexaDefaultAnswer.response.card.content =
-      "Getting your last " + number + " notes. \n";
+      "Getting your last " + 5 + " notes. \n";
     const tagsWithIds = await getTags(cleanRawTagName(tag));
     if (tagsWithIds.length === 0) {
       AlexaDefaultAnswer.response.outputSpeech.ssml +=
@@ -175,9 +175,9 @@ const getAlexaResponse = async (
         "Sorry, but no tag exists with that name.";
       return AlexaDefaultAnswer;
     }
-    return getNotes(false, [tagsWithIds[0].tagId], number)
+    return getNotes(false, [tagsWithIds[0].tagId], 5)
       .then((notes) => {
-        for (let i = 0; i < notes.length; i++) {
+        for (let i = 0; i < 5; i++) {
           AlexaDefaultAnswer.response.outputSpeech.ssml +=
             "Note " + (i + 1) + ": " + notes[i].content + ". ";
           AlexaDefaultAnswer.response.card.content +=
