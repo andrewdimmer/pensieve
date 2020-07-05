@@ -10,7 +10,11 @@ class NoteList extends StatelessWidget {
       this.handleReorder,
       this.refreshList,
       this.onToggleComplete,
-      this.onDelete})
+      this.onDelete,
+      this.getTagName,
+      this.getUnusedTags,
+      this.addTag,
+      this.removeTag})
       : super(key: key);
 
   final Widget header;
@@ -19,6 +23,10 @@ class NoteList extends StatelessWidget {
   final Function refreshList;
   final Function onToggleComplete;
   final Function onDelete;
+  final Function getTagName;
+  final Function getUnusedTags;
+  final Function addTag;
+  final Function removeTag;
 
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -30,6 +38,10 @@ class NoteList extends StatelessWidget {
                 note: item,
                 onToggleComplete: onToggleComplete,
                 onDelete: onDelete,
+                getTagName: getTagName,
+                getUnusedTags: getUnusedTags,
+                addTag: addTag,
+                removeTag: removeTag,
                 key: UniqueKey(),
               ),
             )

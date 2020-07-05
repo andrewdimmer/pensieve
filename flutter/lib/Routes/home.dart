@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pensieve/Classes/dataObjects.dart';
 import 'package:pensieve/Database/manageNotesDatabase.dart';
+import 'package:pensieve/Database/manageTagsDatabase.dart';
 import 'package:pensieve/Pages/noteList.dart';
+import 'package:pensieve/Pages/tagList.dart';
 import 'package:pensieve/Widgets/bottomNavBar.dart';
 import 'package:pensieve/Widgets/bottomNavBarButton.dart';
 import 'package:pensieve/Widgets/loading.dart';
@@ -17,6 +19,11 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   _HomeState() {
+    getTagsFromDatabase().then((value) {
+      setState(() {
+        _tags = value;
+      });
+    });
     getNotesFromDatabase(false, []).then((value) {
       setState(() {
         _currentList = value;
@@ -31,6 +38,7 @@ class _HomeState extends State<Home> {
 
   final _pageController = PageController(initialPage: 1);
 
+  List<TagObject> _tags;
   List<NoteObject> _currentList;
   List<NoteObject> _pastList;
 
@@ -121,18 +129,60 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> _refreshLists() {
-    return getNotesFromDatabase(false, []).then(
-      (newCurrentList) {
-        return getNotesFromDatabase(true, []).then(
-          (newPastList) => setState(
-            () {
-              _currentList = newCurrentList;
-              _pastList = newPastList;
-            },
-          ),
+    return getTagsFromDatabase().then(
+      (newTags) {
+        return getNotesFromDatabase(false, []).then(
+          (newCurrentList) {
+            return getNotesFromDatabase(true, []).then(
+              (newPastList) => setState(
+                () {
+                  _tags = newTags;
+                  _currentList = newCurrentList;
+                  _pastList = newPastList;
+                },
+              ),
+            );
+          },
         );
       },
     );
+  }
+
+  String _getTagName(String tagId) {
+    for (TagObject tagObject in _tags) {
+      if (tagObject.tagId == tagId) {
+        return tagObject.tagName;
+      }
+    }
+    return "";
+  }
+
+  List<String> _getUnusedTags(List<String> tagIds) {
+    List<String> unused = [];
+    for (TagObject tagObject in _tags) {
+      if (!tagIds.contains(tagObject.tagId)) {
+        unused.add(tagObject.tagId);
+      }
+    }
+    return unused;
+  }
+
+  void _addTag(String noteId, String tagId, bool completed) {
+    addTagDatabase(noteId, tagId);
+    setState(() {
+      (completed ? _pastList : _currentList)[_getIndex(noteId, completed)]
+          .tags
+          .add(tagId);
+    });
+  }
+
+  void _removeTag(String noteId, String tagId, bool completed) {
+    removeTagDatabase(noteId, tagId);
+    setState(() {
+      (completed ? _pastList : _currentList)[_getIndex(noteId, completed)]
+          .tags
+          .remove(tagId);
+    });
   }
 
   @override
@@ -141,14 +191,12 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: _currentList == null || _pastList == null
+      body: _tags == null || _currentList == null || _pastList == null
           ? loadingWidget("Loading...")
           : PageView(
               children: <Widget>[
-                NoteList(
-                  header: Text("Tags"),
-                  list: _currentList,
-                  handleReorder: _handleReorderFactory(_currentList),
+                TagList(
+                  list: _tags,
                   refreshList: _refreshLists,
                 ),
                 NoteList(
@@ -158,6 +206,10 @@ class _HomeState extends State<Home> {
                   refreshList: _refreshLists,
                   onToggleComplete: _onToggleComplete,
                   onDelete: _onDelete,
+                  getTagName: _getTagName,
+                  getUnusedTags: _getUnusedTags,
+                  addTag: _addTag,
+                  removeTag: _removeTag,
                 ),
                 NoteList(
                   header: Text("Past Thoughts"),
@@ -166,31 +218,38 @@ class _HomeState extends State<Home> {
                   refreshList: _refreshLists,
                   onToggleComplete: _onToggleComplete,
                   onDelete: _onDelete,
+                  getTagName: _getTagName,
+                  getUnusedTags: _getUnusedTags,
+                  addTag: _addTag,
+                  removeTag: _removeTag,
                 )
               ],
               controller: _pageController,
               onPageChanged: _setFab,
             ),
       floatingActionButton:
-          _currentList == null || _pastList == null ? null : _fab,
-      bottomNavigationBar: _currentList == null || _pastList == null
-          ? null
-          : BottomNavBar(
-              propsList: [
-                BottomNavBarButtonProps(
-                  label: "Tags",
-                  callback: _navigationFunctionFactory(0),
+          _tags == null || _currentList == null || _pastList == null
+              ? null
+              : _fab,
+      bottomNavigationBar:
+          _tags == null || _currentList == null || _pastList == null
+              ? null
+              : BottomNavBar(
+                  propsList: [
+                    BottomNavBarButtonProps(
+                      label: "Tags",
+                      callback: _navigationFunctionFactory(0),
+                    ),
+                    BottomNavBarButtonProps(
+                      label: "Current Thoughts",
+                      callback: _navigationFunctionFactory(1),
+                    ),
+                    BottomNavBarButtonProps(
+                      label: "Past Thoughts",
+                      callback: _navigationFunctionFactory(2),
+                    ),
+                  ],
                 ),
-                BottomNavBarButtonProps(
-                  label: "Current Thoughts",
-                  callback: _navigationFunctionFactory(1),
-                ),
-                BottomNavBarButtonProps(
-                  label: "Past Thoughts",
-                  callback: _navigationFunctionFactory(2),
-                ),
-              ],
-            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
