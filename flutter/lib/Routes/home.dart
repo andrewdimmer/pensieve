@@ -3,6 +3,7 @@ import 'package:pensieve/Classes/dataObjects.dart';
 import 'package:pensieve/Database/manageNotesDatabase.dart';
 import 'package:pensieve/Database/manageTagsDatabase.dart';
 import 'package:pensieve/Pages/noteList.dart';
+import 'package:pensieve/Pages/tagList.dart';
 import 'package:pensieve/Widgets/bottomNavBar.dart';
 import 'package:pensieve/Widgets/bottomNavBarButton.dart';
 import 'package:pensieve/Widgets/loading.dart';
@@ -158,10 +159,8 @@ class _HomeState extends State<Home> {
           ? loadingWidget("Loading...")
           : PageView(
               children: <Widget>[
-                NoteList(
-                  header: Text("Tags"),
-                  list: _currentList,
-                  handleReorder: _handleReorderFactory(_currentList),
+                TagList(
+                  list: _tags,
                   refreshList: _refreshLists,
                 ),
                 NoteList(
