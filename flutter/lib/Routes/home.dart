@@ -168,6 +168,7 @@ class _HomeState extends State<Home> {
   }
 
   void _addTag(String noteId, String tagId, bool completed) {
+    addTagDatabase(noteId, tagId);
     setState(() {
       (completed ? _pastList : _currentList)[_getIndex(noteId, completed)]
           .tags
@@ -176,6 +177,7 @@ class _HomeState extends State<Home> {
   }
 
   void _removeTag(String noteId, String tagId, bool completed) {
+    removeTagDatabase(noteId, tagId);
     setState(() {
       (completed ? _pastList : _currentList)[_getIndex(noteId, completed)]
           .tags
