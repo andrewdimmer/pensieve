@@ -36,14 +36,22 @@ class _HomeState extends State<Home> {
 
   Widget _fab = _getAddNewFab("New Thought", () {});
 
-  Function _handleReorderFactory(List list) {
+  Function _handleReorderFactory(List<NoteObject> list) {
     return (int index1, int index2) {
       setState(() {
-        list.insert(index2, list[index1]);
+        NoteObject note = list[index1];
+        list.insert(index2, note);
         if (index2 < index1) {
           index1++;
+          index2++;
         }
         list.removeAt(index1);
+        note.order = index2 - 2 >= 0
+            ? index2 < list.length
+                ? ((list[index2 - 2].order + list[index2].order) / 2).round()
+                : list[index2 - 2].order - 100
+            : DateTime.now().millisecondsSinceEpoch;
+        editNoteOrderDatabase(note.noteId, note.order);
       });
     };
   }
