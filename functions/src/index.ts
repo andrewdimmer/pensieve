@@ -6,12 +6,14 @@ import {
   editNoteOrderFlutter,
   getNotesFlutter,
 } from "./flutter/manageNotesFlutter";
+import { getTagsFlutter } from "./flutter/manageTagsFlutter";
 
 // Alexa Skill
 export const alexa_handlers = alexaSkill;
 
 // Flutter App
 export const get_notes_flutter = getNotesFlutter;
+export const get_tags_flutter = getTagsFlutter;
 export const edit_note_completeness_flutter = editNoteCompletenessFlutter;
 export const edit_note_order_flutter = editNoteOrderFlutter;
 export const delete_note_flutter = deleteNoteFlutter;
