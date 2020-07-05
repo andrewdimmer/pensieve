@@ -4,8 +4,11 @@ import { getNotes } from "../cross-platform/getNotesAndTags";
 export const getNotesFlutter = functions.https.onRequest(
   (request, response) => {
     response.setHeader("Access-Control-Allow-Origin", "*"); // TODO: Make more secure later!
-    const tags = JSON.parse(request.body).tags as string[];
-    getNotes(tags ? tags : [])
+    const requestBody = JSON.parse(request.body) as {
+      complete: boolean;
+      tags: string[];
+    };
+    getNotes(requestBody.complete, requestBody.tags ? requestBody.tags : [])
       .then((notes) => response.status(200).send({ notes }))
       .catch((err) => {
         console.log(err);

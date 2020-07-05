@@ -30,7 +30,7 @@ class NoteList extends StatelessWidget {
         padding: EdgeInsets.only(top: 16),
       ),
       onRefresh: () async {
-        getNotesFromDatabase([]);
+        getNotesFromDatabase(false, []);
       },
     );
   }
