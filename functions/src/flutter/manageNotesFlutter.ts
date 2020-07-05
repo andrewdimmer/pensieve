@@ -3,6 +3,7 @@ import { getNotes } from "../cross-platform/getNotesAndTags";
 import {
   deleteNote,
   editNoteCompleteness,
+  editNoteOrder,
 } from "../cross-platform/manageNotes";
 
 export const getNotesFlutter = functions.https.onRequest(
@@ -33,6 +34,23 @@ export const editNoteCompletenessFlutter = functions.https.onRequest(
       .catch((err) => {
         console.log(err);
         response.status(500).send("Unable to update completeness.");
+      });
+  }
+);
+
+export const editNoteOrderFlutter = functions.https.onRequest(
+  (request, response) => {
+    response.setHeader("Access-Control-Allow-Origin", "*"); // TODO: Make more secure later!
+    const requestBody = JSON.parse(request.body) as {
+      noteId: string;
+      order: number;
+    };
+
+    editNoteOrder(requestBody.noteId, requestBody.order)
+      .then((status) => response.status(200).send(status))
+      .catch((err) => {
+        console.log(err);
+        response.status(500).send("Unable to update order.");
       });
   }
 );

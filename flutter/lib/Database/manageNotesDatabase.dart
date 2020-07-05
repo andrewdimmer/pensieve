@@ -53,6 +53,25 @@ Future<bool> editNoteCompletenessDatabase(String noteId, bool complete) async {
   }
 }
 
+Future<bool> editNoteOrderDatabase(String noteId, int order) async {
+  final response = await http.post(
+      'https://us-central1-hackcation2020-gcp.cloudfunctions.net/edit_note_order_flutter',
+      body: '{"noteId": "' + noteId + '", "order": ' + order.toString() + '}');
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    return json.decode(response.body) as bool;
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    print(response.statusCode);
+    print(response.reasonPhrase);
+    print(response.body);
+    throw Exception('Failed to update note.');
+  }
+}
+
 Future<bool> deleteNoteDatabase(String noteId) async {
   final response = await http.post(
       'https://us-central1-hackcation2020-gcp.cloudfunctions.net/delete_note_flutter',
