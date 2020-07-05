@@ -3,6 +3,7 @@ import { tagLastNoteHelperTest } from "./alexa/tagLastNoteHelper";
 import {
   deleteNoteFlutter,
   editNoteCompletenessFlutter,
+  editNoteOrderFlutter,
   getNotesFlutter,
 } from "./flutter/manageNotesFlutter";
 
@@ -12,6 +13,7 @@ export const alexa_handlers = alexaSkill;
 // Flutter App
 export const get_notes_flutter = getNotesFlutter;
 export const edit_note_completeness_flutter = editNoteCompletenessFlutter;
+export const edit_note_order_flutter = editNoteOrderFlutter;
 export const delete_note_flutter = deleteNoteFlutter;
 
 // Test
