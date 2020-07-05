@@ -45,17 +45,14 @@ export const getNotes = (
  * @returns An array of all of the tags in the database.
  */
 export const getTags = (tagName?: string): Promise<Tag[]> => {
-  let activeRef:
-    | firebase.firestore.CollectionReference<firebase.firestore.DocumentData>
-    | firebase.firestore.Query<firebase.firestore.DocumentData> = tagsRef;
+  let activeRef = tagsRef.orderBy("tagName", "asc");
 
   // If a name is specified, get all tags with that name and only that name
   if (tagName) {
-    activeRef = activeRef.where("tagName", "==", tagName);
+    activeRef = tagsRef.where("tagName", "==", tagName);
   }
 
   return activeRef
-    .orderBy("tagName", "desc")
     .get()
     .then((queryResults) => {
       return queryResults.docs.map((snapshot) => {

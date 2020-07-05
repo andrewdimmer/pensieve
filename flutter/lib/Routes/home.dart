@@ -1,10 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:pensieve/Classes/dataObjects.dart';
-import 'package:pensieve/Database/getNotes.dart';
+import 'package:pensieve/Database/manageNotesDatabase.dart';
+import 'package:pensieve/Database/manageTagsDatabase.dart';
 import 'package:pensieve/Pages/noteList.dart';
+import 'package:pensieve/Pages/tagList.dart';
 import 'package:pensieve/Widgets/bottomNavBar.dart';
 import 'package:pensieve/Widgets/bottomNavBarButton.dart';
 import 'package:pensieve/Widgets/loading.dart';
+import 'package:pensieve/Widgets/tagFilterBar.dart';
 
 class Home extends StatefulWidget {
   Home({Key key, this.title}) : super(key: key);
@@ -17,27 +22,48 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   _HomeState() {
+    getTagsFromDatabase().then((value) {
+      setState(() {
+        _tags = value;
+      });
+    });
+    getNotesFromDatabase(false, []).then((value) {
+      setState(() {
+        _currentList = value;
+      });
+    });
     getNotesFromDatabase(true, []).then((value) {
       setState(() {
-        _list = value;
+        _pastList = value;
       });
     });
   }
 
   final _pageController = PageController(initialPage: 1);
 
-  List<NoteObject> _list;
+  List<TagObject> _tags;
+  List<NoteObject> _currentList;
+  List<NoteObject> _pastList;
+  List<String> _activeFilters = [];
 
   Widget _fab = _getAddNewFab("New Thought", () {});
 
-  Function _handleReorderFactory(List list) {
+  Function _handleReorderFactory(List<NoteObject> list) {
     return (int index1, int index2) {
       setState(() {
-        list.insert(index2, _list[index1]);
+        NoteObject note = list[index1];
+        list.insert(index2, note);
         if (index2 < index1) {
           index1++;
+          index2++;
         }
         list.removeAt(index1);
+        note.order = index2 - 2 >= 0
+            ? index2 < list.length
+                ? ((list[index2 - 2].order + list[index2].order) / 2).round()
+                : list[index2 - 2].order - 100
+            : DateTime.now().millisecondsSinceEpoch;
+        editNoteOrderDatabase(note.noteId, note.order);
       });
     };
   }
@@ -47,6 +73,41 @@ class _HomeState extends State<Home> {
       _pageController.animateToPage(goToPage,
           duration: Duration(milliseconds: 500), curve: Curves.ease);
     };
+  }
+
+  void _onToggleComplete(String noteId, bool completed) {
+    editNoteCompletenessDatabase(noteId, !completed);
+    setState(() {
+      NoteObject note = (completed ? _pastList : _currentList).removeAt(
+        _getIndex(noteId, completed),
+      );
+      note.complete = !note.complete;
+      if ((completed ? _currentList : _pastList).length == 0) {
+        (completed ? _currentList : _pastList).add(note);
+      } else {
+        (completed ? _currentList : _pastList).insert(0, note);
+      }
+    });
+  }
+
+  void _onDelete(String noteId, bool completed) {
+    deleteNoteDatabase(noteId);
+    setState(() {
+      (completed ? _pastList : _currentList).removeAt(
+        _getIndex(noteId, completed),
+      );
+    });
+  }
+
+  int _getIndex(String noteId, bool completed) {
+    for (int i = 0;
+        completed ? i < _pastList.length : i < _currentList.length;
+        i++) {
+      if ((completed ? _pastList : _currentList)[i].noteId == noteId) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   static Widget _getAddNewFab(String label, Function onPressed) {
@@ -71,54 +132,160 @@ class _HomeState extends State<Home> {
     });
   }
 
+  Future<void> _refreshLists() {
+    return getTagsFromDatabase().then(
+      (newTags) {
+        return getNotesFromDatabase(false, _activeFilters).then(
+          (newCurrentList) {
+            return getNotesFromDatabase(true, _activeFilters).then(
+              (newPastList) => setState(
+                () {
+                  _tags = newTags;
+                  _currentList = newCurrentList;
+                  _pastList = newPastList;
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _getTagName(String tagId) {
+    for (TagObject tagObject in _tags) {
+      if (tagObject.tagId == tagId) {
+        return tagObject.tagName;
+      }
+    }
+    return "";
+  }
+
+  List<String> _getUnusedTags(List<String> tagIds) {
+    List<String> unused = [];
+    for (TagObject tagObject in _tags) {
+      if (!tagIds.contains(tagObject.tagId)) {
+        unused.add(tagObject.tagId);
+      }
+    }
+    return unused;
+  }
+
+  void _addTag(String noteId, String tagId, bool completed) {
+    addTagDatabase(noteId, tagId);
+    setState(() {
+      (completed ? _pastList : _currentList)[_getIndex(noteId, completed)]
+          .tags
+          .add(tagId);
+    });
+  }
+
+  void _removeTag(String noteId, String tagId, bool completed) {
+    removeTagDatabase(noteId, tagId);
+    setState(() {
+      (completed ? _pastList : _currentList)[_getIndex(noteId, completed)]
+          .tags
+          .remove(tagId);
+    });
+  }
+
+  void _addTagToFilter(String tagId) {
+    setState(() {
+      _activeFilters.add(tagId);
+      _currentList = null;
+      _pastList = null;
+      _refreshLists();
+    });
+  }
+
+  void _removeTagFromFilter(String tagId) {
+    setState(() {
+      _activeFilters.remove(tagId);
+      _currentList = null;
+      _pastList = null;
+      _refreshLists();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: _list == null
+      body: _tags == null || _currentList == null || _pastList == null
           ? loadingWidget("Loading...")
           : PageView(
               children: <Widget>[
-                NoteList(
-                  header: Text("Tags"),
-                  list: _list,
-                  handleReorder: _handleReorderFactory(_list),
+                TagList(
+                  list: _tags,
+                  refreshList: _refreshLists,
                 ),
                 NoteList(
-                  header: Text("Current Thoughts"),
-                  list: _list,
-                  handleReorder: _handleReorderFactory(_list),
+                  header: TagFilterBar(
+                    title: "Current Thoughts",
+                    filterOptions: new FilterOptions(
+                        activeFilters: _activeFilters.toList(),
+                        tags: _tags.toList()),
+                    addTagToFilter: _addTagToFilter,
+                    removeTagFromFilter: _removeTagFromFilter,
+                  ),
+                  list: _currentList,
+                  handleReorder: _handleReorderFactory(_currentList),
+                  refreshList: _refreshLists,
+                  onToggleComplete: _onToggleComplete,
+                  onDelete: _onDelete,
+                  getTagName: _getTagName,
+                  getUnusedTags: _getUnusedTags,
+                  addTag: _addTag,
+                  removeTag: _removeTag,
                 ),
                 NoteList(
-                  header: Text("Past Thoughts"),
-                  list: _list,
-                  handleReorder: _handleReorderFactory(_list),
+                  header: TagFilterBar(
+                    title: "Past Thoughts",
+                    filterOptions: new FilterOptions(
+                        activeFilters: _activeFilters.toList(),
+                        tags: _tags.toList()),
+                    addTagToFilter: _addTagToFilter,
+                    removeTagFromFilter: _removeTagFromFilter,
+                  ),
+                  list: _pastList,
+                  handleReorder: _handleReorderFactory(_pastList),
+                  refreshList: _refreshLists,
+                  onToggleComplete: _onToggleComplete,
+                  onDelete: _onDelete,
+                  getTagName: _getTagName,
+                  getUnusedTags: _getUnusedTags,
+                  addTag: _addTag,
+                  removeTag: _removeTag,
                 )
               ],
               controller: _pageController,
               onPageChanged: _setFab,
             ),
-      floatingActionButton: _list == null ? null : _fab,
-      bottomNavigationBar: _list == null
-          ? null
-          : BottomNavBar(
-              propsList: [
-                BottomNavBarButtonProps(
-                  label: "Tags",
-                  callback: _navigationFunctionFactory(0),
+      floatingActionButton:
+          _tags == null || _currentList == null || _pastList == null
+              ? null
+              : _fab,
+      bottomNavigationBar:
+          _tags == null || _currentList == null || _pastList == null
+              ? null
+              : BottomNavBar(
+                  propsList: [
+                    BottomNavBarButtonProps(
+                      label: "Tags",
+                      callback: _navigationFunctionFactory(0),
+                    ),
+                    BottomNavBarButtonProps(
+                      label: "Current Thoughts",
+                      callback: _navigationFunctionFactory(1),
+                    ),
+                    BottomNavBarButtonProps(
+                      label: "Past Thoughts",
+                      callback: _navigationFunctionFactory(2),
+                    ),
+                  ],
                 ),
-                BottomNavBarButtonProps(
-                  label: "Current Thoughts",
-                  callback: _navigationFunctionFactory(1),
-                ),
-                BottomNavBarButtonProps(
-                  label: "Past Thoughts",
-                  callback: _navigationFunctionFactory(2),
-                ),
-              ],
-            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }

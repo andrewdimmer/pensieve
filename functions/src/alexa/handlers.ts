@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
+import { getNotes, getTags } from "../cross-platform/getNotesAndTags";
 import { createNote } from "../cross-platform/manageNotes";
-import { getNotes } from "../cross-platform/getNotesAndTags";
-import { Note } from "../@types";
+import { cleanRawTagName } from "../helpers/tagHelpers";
 import { tagLastNoteHelper } from "./tagLastNoteHelper";
 
 export const alexaSkill = functions.https.onRequest((request, response) => {
@@ -77,7 +77,7 @@ const getAlexaResponse = async (
     type.indexOf("IntentRequest") >= 0 &&
     name.indexOf("AddNote") >= 0
   ) {
-    return createNote(note)
+    return createNote(note.replace(/"/g, ""))
       .then((noteId) => {
         if (noteId) {
           AlexaDefaultAnswer.response.outputSpeech.ssml =
@@ -104,17 +104,17 @@ const getAlexaResponse = async (
     name.indexOf("AddTag") >= 0
   ) {
     return tagLastNoteHelper(tag)
-      .then((tagId) => {
-        if (tagId) {
+      .then((noteContent) => {
+        if (noteContent) {
           AlexaDefaultAnswer.response.outputSpeech.ssml =
             "<speak>" +
             "Added tag: " +
             tag +
-            " to " +
-            "your previous note" +
+            "to the note " +
+            noteContent +
             "</speak>";
           AlexaDefaultAnswer.response.card.content =
-            "Added tag: " + tag + " to " + "your previous note";
+            "Added tag: " + tag + " to the note" + noteContent;
           return AlexaDefaultAnswer;
         } else {
           AlexaDefaultAnswer.response.outputSpeech.ssml =
@@ -137,15 +137,16 @@ const getAlexaResponse = async (
     name.indexOf("GetNotes") >= 0
   ) {
     AlexaDefaultAnswer.response.outputSpeech.ssml =
-      "<speak>" + "Getting your notes.";
-    AlexaDefaultAnswer.response.card.content = "Getting your notes. \n";
-    return getNotes(false, [], 5)
+      "<speak>" + "Getting your last " + number + " notes.";
+    AlexaDefaultAnswer.response.card.content =
+      "Getting your last " + number + " notes. \n";
+    return getNotes(false, [], parseInt(number.replace(/"/g, "")))
       .then((notes) => {
         for (let i = 0; i < notes.length; i++) {
           AlexaDefaultAnswer.response.outputSpeech.ssml +=
-            "Note " + (i + 1) + ": " + notes[i].content + ". ";
+            "Note " + i + ": " + notes[i].content;
           AlexaDefaultAnswer.response.card.content +=
-            "Note " + (i + 1) + ": " + notes[i].content + "\n ";
+            "Note " + i + ": " + notes[i].content + "\n";
         }
         AlexaDefaultAnswer.response.outputSpeech.ssml += "</speak>";
         return AlexaDefaultAnswer;
@@ -163,19 +164,25 @@ const getAlexaResponse = async (
     name.indexOf("GetTaggedNotes") >= 0
   ) {
     AlexaDefaultAnswer.response.outputSpeech.ssml =
-      "<speak>" + "Getting your notes. ";
-    AlexaDefaultAnswer.response.card.content = "Getting your notes. \n";
-    let notes: Note[] = [];
-    return getNotes(false, [tag], 5)
-      .then((value) => {
-        notes = value;
+      "<speak>" + "Getting your last " + number + " notes.";
+    AlexaDefaultAnswer.response.card.content =
+      "Getting your last " + number + " notes. \n";
+    const tagsWithIds = await getTags(cleanRawTagName(tag));
+    if (tagsWithIds.length === 0) {
+      AlexaDefaultAnswer.response.outputSpeech.ssml +=
+        "<speak>Sorry, but no tag exists with that name.</speak>";
+      AlexaDefaultAnswer.response.card.content +=
+        "Sorry, but no tag exists with that name.";
+      return AlexaDefaultAnswer;
+    }
+    return getNotes(false, [tagsWithIds[0].tagId], number)
+      .then((notes) => {
         for (let i = 0; i < notes.length; i++) {
           AlexaDefaultAnswer.response.outputSpeech.ssml +=
-            "Note " + (i + 1) + ": " + notes[i].content;
+            "<speak>" + "Note " + i + ": " + notes[i].content + "</speak>";
           AlexaDefaultAnswer.response.card.content +=
-            "Note " + (i + 1) + ": " + notes[i].content + "\n";
+            "Note " + i + ": " + notes[i].content + "\n";
         }
-        AlexaDefaultAnswer.response.outputSpeech.ssml += "</speak>";
         return AlexaDefaultAnswer;
       })
       .catch((err) => {

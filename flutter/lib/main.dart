@@ -9,12 +9,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pensieve Online',
+      title: 'Brain Dump',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: Home(title: 'Pensieve Online'),
+      home: Home(title: 'Brain Dump'),
       debugShowCheckedModeBanner: false,
     );
   }

@@ -3,6 +3,8 @@ import { getNotes, getTags } from "../cross-platform/getNotesAndTags";
 import { createTag } from "../cross-platform/manageTags";
 import { addTag } from "../cross-platform/tagUntag";
 import { logReturnEmptyString } from "../helpers/errorHelpers";
+import { cleanRawTagName } from "../helpers/tagHelpers";
+
 
 /**
  * Addes the given tag to the last updated note.
@@ -11,10 +13,7 @@ import { logReturnEmptyString } from "../helpers/errorHelpers";
  * @returns The contents of the note that was updated if the tag was added successfully; otherwise an empty string.
  */
 export const tagLastNoteHelper = (tagNameRaw: string) => {
-  const tagName = tagNameRaw
-    .toLowerCase()
-    .replace(/ /g, "-")
-    .replace(/[^a-z\d-]/g, "");
+  const tagName = cleanRawTagName(tagNameRaw);
 
   // Get the most recent open note
   return getNotes(false, [], 1)

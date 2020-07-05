@@ -2,13 +2,12 @@ class NoteObject {
   NoteObject({this.noteId, this.content, this.order, this.tags, this.complete});
 
   final String noteId;
-  final String content;
-  final int order;
-  final List<String> tags;
-  final bool complete;
+  String content;
+  int order;
+  List<String> tags;
+  bool complete;
 
   factory NoteObject.fromJson(Map<String, dynamic> json) {
-    print(json.toString());
     return NoteObject(
       noteId: json["noteId"],
       content: json["content"],
@@ -23,7 +22,7 @@ class TagObject {
   TagObject({this.tagId, this.tagName});
 
   final String tagId;
-  final String tagName;
+  String tagName;
 
   factory TagObject.fromJson(Map<String, dynamic> json) {
     return TagObject(
