@@ -13,7 +13,7 @@ class NoteObject {
       noteId: json["noteId"],
       content: json["content"],
       order: json["order"],
-      tags: List<String>(json["tags"]),
+      tags: (json["tags"]).map<String>((tag) => tag.toString()).toList(),
       complete: json["complete"],
     );
   }
