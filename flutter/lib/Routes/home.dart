@@ -17,23 +17,29 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   _HomeState() {
+    getNotesFromDatabase(false, []).then((value) {
+      setState(() {
+        _currentList = value;
+      });
+    });
     getNotesFromDatabase(true, []).then((value) {
       setState(() {
-        _list = value;
+        _pastList = value;
       });
     });
   }
 
   final _pageController = PageController(initialPage: 1);
 
-  List<NoteObject> _list;
+  List<NoteObject> _currentList;
+  List<NoteObject> _pastList;
 
   Widget _fab = _getAddNewFab("New Thought", () {});
 
   Function _handleReorderFactory(List list) {
     return (int index1, int index2) {
       setState(() {
-        list.insert(index2, _list[index1]);
+        list.insert(index2, list[index1]);
         if (index2 < index1) {
           index1++;
         }
@@ -77,31 +83,32 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: _list == null
+      body: _currentList == null || _pastList == null
           ? loadingWidget("Loading...")
           : PageView(
               children: <Widget>[
                 NoteList(
                   header: Text("Tags"),
-                  list: _list,
-                  handleReorder: _handleReorderFactory(_list),
+                  list: _currentList,
+                  handleReorder: _handleReorderFactory(_currentList),
                 ),
                 NoteList(
                   header: Text("Current Thoughts"),
-                  list: _list,
-                  handleReorder: _handleReorderFactory(_list),
+                  list: _currentList,
+                  handleReorder: _handleReorderFactory(_currentList),
                 ),
                 NoteList(
                   header: Text("Past Thoughts"),
-                  list: _list,
-                  handleReorder: _handleReorderFactory(_list),
+                  list: _pastList,
+                  handleReorder: _handleReorderFactory(_pastList),
                 )
               ],
               controller: _pageController,
               onPageChanged: _setFab,
             ),
-      floatingActionButton: _list == null ? null : _fab,
-      bottomNavigationBar: _list == null
+      floatingActionButton:
+          _currentList == null || _pastList == null ? null : _fab,
+      bottomNavigationBar: _currentList == null || _pastList == null
           ? null
           : BottomNavBar(
               propsList: [
